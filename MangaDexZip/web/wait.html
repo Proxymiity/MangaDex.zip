@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title id="title">MangaDex.Zip | Waiting for task</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.2.3/dist/darkly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
+</head>
+
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <p id="p_proc">Your request is being processed. Please wait, you will be redirected automatically.</p>
+            <p id="p_done" hidden>Your task has succeeded. The download should start automatically. If not, <a id="link" href="#">click here</a>.</p>
+            <p id="p_fail" hidden>Your task has failed. If this persists, please report the issue.</p>
+            <p>Active groups on this server:&nbsp;<code id="groups">-</code><br>Active tasks on this server:&nbsp;<code id="tasks">-</code></p>
+            <p></p>
+            <p>Task ID:&nbsp;<code>{{ task_id }}</code><br>Status:&nbsp;<code id="status">Waiting for task info</code></p>
+            <div class="progress">
+                <div id="bar" class="progress-bar progress-bar-striped progress-bar-animated" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%;">Waiting for task info...</div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+<script type="text/javascript">
+    // Stop looking here, senpai -- it's dirty!
+    // No, seriously, I mean it.
+    // I'm not a web developer. And by that, I mean, I'm not even a developer IRL.
+    let p_proc = document.getElementById("p_proc")
+    let p_done = document.getElementById("p_done")
+    let p_fail = document.getElementById("p_fail")
+    let link = document.getElementById("link")
+    let status = document.getElementById("status")
+    let groups = document.getElementById("groups")
+    let tasks = document.getElementById("tasks")
+    let bar = document.getElementById("bar")
+
+    fetch("{{ api_url }}/queue/front/{{ task_id }}")
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(jsonResponse) {
+            if (jsonResponse.hasOwnProperty('uid')) {
+                document.title = "MangaDex.zip | " + jsonResponse.status;
+                status.innerHTML = jsonResponse.status;
+                groups.innerHTML = jsonResponse.scheduler.active_groups;
+                tasks.innerHTML = jsonResponse.scheduler.active_tasks;
+                bar.innerHTML = jsonResponse.progress.toString() + "%"
+                bar.ariaValueNow = jsonResponse.progress.toString()
+                bar.style["width"] = jsonResponse.progress.toString() + "%"
+                if (jsonResponse.completed === true) {
+                    bar.classList.add("bg-success")
+                    bar.classList.remove("progress-bar-animated")
+                    p_proc.hidden = true
+                    p_done.hidden = false
+                    link.href = jsonResponse.redirect_uri
+                    window.location.replace(jsonResponse.redirect_uri);
+                    throw new Error("Stopping script execution");
+                }
+                if (jsonResponse.failed === true) {
+                    bar.classList.add("bg-danger")
+                    bar.classList.remove("progress-bar-animated")
+                    p_proc.hidden = true
+                    p_fail.hidden = false
+                    throw new Error("Stopping script execution");
+                }
+            } else {
+                throw new Error("Malformed response from API");
+            }
+        });
+
+    const interval = setInterval(async () => {
+        await fetch("{{ api_url }}/queue/front/{{ task_id }}")
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(jsonResponse) {
+                if (jsonResponse.hasOwnProperty('uid')) {
+                    document.title = "MangaDex.zip | " + jsonResponse.status;
+                    status.innerHTML = jsonResponse.status;
+                    groups.innerHTML = jsonResponse.scheduler.active_groups;
+                    tasks.innerHTML = jsonResponse.scheduler.active_tasks;
+                    bar.innerHTML = jsonResponse.progress.toString() + "%";
+                    bar.ariaValueNow = jsonResponse.progress.toString();
+                    bar.style["width"] = jsonResponse.progress.toString() + "%"
+                    if (jsonResponse.completed === true) {
+                        bar.classList.add("bg-success")
+                        bar.classList.remove("progress-bar-animated")
+                        p_proc.hidden = true;
+                        p_done.hidden = false;
+                        link.href = jsonResponse.redirect_uri;
+                        window.location.replace(jsonResponse.redirect_uri);
+                        clearInterval(interval);
+                    }
+                    if (jsonResponse.failed === true) {
+                        bar.classList.add("bg-danger")
+                        bar.classList.remove("progress-bar-animated")
+                        p_proc.hidden = true;
+                        p_fail.hidden = false;
+                        clearInterval(interval);
+                    }
+                } else {
+                    clearInterval(interval);
+                }
+            });
+    }, {{ update_interval }});
+
+</script>
+
+</html>

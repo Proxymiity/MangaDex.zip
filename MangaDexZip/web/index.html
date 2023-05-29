@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>MangaDex.Zip | About</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.2.3/dist/darkly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Welcome to MangaDex.Zip</h1>
+                <p>MangaDex.zip (<code><strong>mangadex.zip</strong></code>) allows you to download Manga and Chapters on MangaDex, <strong>directly from your browser</strong>.<br>All it takes is to replace the&nbsp;<code>.org</code>&nbsp;part in the URL by&nbsp;<code>.zip</code>.</p>
+                <p></p>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <p>Here's a quick example for a Manga:&nbsp;<code>https://<strong>mangadex.org</strong>/title/b9797c5b-642e-44d9-ac40-8b31b9ae110a/tsuki-ga-kirei-desu-ne</code>&nbsp;will become&nbsp;<code>https://<strong>mangadex.zip</strong>/title/b9797c5b-642e-44d9-ac40-8b31b9ae110a/tsuki-ga-kirei-desu-ne</code>.</p>
+            </div>
+            <div class="col-md-6">
+                <p>Here's a quick example for a Chapter:&nbsp;<code>https://<strong>mangadex.org</strong>/chapter/3d6f1fce-d736-4ad1-b53b-71dca6a519d6/1</code>&nbsp;will become&nbsp;<code>https://<strong>mangadex.zip</strong>/chapter/3d6f1fce-d736-4ad1-b53b-71dca6a519d6/1</code>.</p>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Additional info</h2>
+                <p>When downloading a Manga, the default language when looking for chapters is <strong>English</strong>. To override this, simply add the following to the end of your address bar:&nbsp;<code><strong>?lang=LANG</strong></code>&nbsp;where&nbsp;<code>LANG</code>&nbsp;is a valid MangaDex language tag, i.e.:&nbsp;<code>?lang=fr</code></p>
+                <p>When downloading a Manga or Chapter, you can always download a slimmed down, lighter version of it by appending the following to the end of your address bar:&nbsp;<code><strong>?light=1</strong></code></p>
+                <p><strong>NB: </strong>If you're adding multiple parameters, be sure to name the first one after a&nbsp;<code>?</code>, and the subsequent parameters with a&nbsp;<code>&amp;</code>. Here's an example:&nbsp;<code>https://<strong>mangadex.zip</strong>/title/b9797c5b-642e-44d9-ac40-8b31b9ae110a<strong>?lang=fr&amp;light=1</strong></code></p>
+                <p>Selecting a primary translation group, automatically appending the chapter's title or only download a range of chapters are planned features and will be coming soon.</p>
+            </div>
+            <div class="col-md-12">
+                <h2>Limitations</h2>
+                <p>This entire site counts as "one" entity when downloading from MangaDex. As such, we had to develop a Fair-Queue system.</p>
+                <p>Any download is considered a "task". You may have as many tasks as you wish in the queue, but they will be processed in a round-robin fashion. Said queue is shared with with multiple users.</p>
+            </div>
+            <div class="col-md-12">
+                <h2>Hello, developers</h2>
+                <p>We offer an API available&nbsp;<a href="/redoc">here</a>. The API consists of 2 major parts: adding items to the queue, and retrieving your items.</p>
+            </div>
+            <div class="col-md-12">
+                <h2>"Terms of Service"</h2>
+                <p>You may use our platform in the following conditions and for the following uses:</p>
+                <ul>
+                    <li>You <strong>may not</strong> use bots to spam the service.</li>
+                    <li>You <strong>may</strong>&nbsp;use the service based on fair-use. The goal of this service is to facilitate downloading from MangaDex, <strong>not archive the entire website</strong>.</li>
+                    <li>You <strong>may not</strong>&nbsp;try to disrupt the service by any means. This also includes spamming the queue with the same title multiple times.</li>
+                </ul>
+                <p>We may block your access to the service indefinitely if we think you may be abusing the service in order to cause service disruptions.</p>
+                <p>We collect data to combat fraud, detect spam and block bots. We collect and keep the following information:</p>
+                <ul>
+                    <li><strong>Your IP&nbsp;address</strong>&nbsp;is used to detect spam and combat fraud on our infrastructure. It is never shared with third parties.</li>
+                    <li><strong>Your browser information</strong>&nbsp;is used to detect spam. It is never shared with third parties.</li>
+                    <li><strong>The data you're requesting from us</strong>&nbsp;is used to build statistics about downloads and to track errors. These statistics do not contain any personal information. For example, when downloading a Manga, we may keep the ID of the downloaded Manga. These statistics may be shared with third parties.</li>
+                </ul>
+                <p>These data are stored on-premises and are never stored outside of our infrastructure. Personal Identifiable Information will be wiped one month after it has been logged.</p>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

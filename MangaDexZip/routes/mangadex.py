@@ -11,8 +11,8 @@ router = APIRouter(tags=["MangaDex"])
 @router.get("/title/{manga_id}", summary="Download a Manga")
 @router.get("/title/{manga_id}/{garbage}", summary="Download a Manga")
 def add_manga(manga_id: str,
-              garbage,
               request: Request,
+              garbage: Union[str, None] = None,
               light: Union[str, None] = None,
               lang: Union[str, None] = "en") -> RedirectResponse:
     """*front-end use only* Download a Manga.
@@ -39,8 +39,8 @@ def add_manga(manga_id: str,
 @router.get("/chapter/{chapter_id}", summary="Download a Chapter")
 @router.get("/chapter/{chapter_id}/{garbage}", summary="Download a Chapter")
 def add_chapter(chapter_id: str,
-                garbage,
                 request: Request,
+                garbage: Union[str, None] = None,
                 light: Union[str, None] = None) -> RedirectResponse:
     """*front-end use only* Download a Chapter.
 

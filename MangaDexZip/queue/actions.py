@@ -125,7 +125,7 @@ class AddMangaChapters(ActionBase):
             if chap.chapter not in dedup_dict:
                 try:
                     dedup_dict[float(chap.chapter)] = chap
-                except ValueError:
+                except (ValueError, TypeError):
                     dedup_dict[chap.chapter] = chap
 
         for _, chap in sorted(dedup_dict.items(), key=lambda i: i[0]):
@@ -166,7 +166,7 @@ class DownloadChapter(ActionBase):
                 return
 
         if self.subfolder:
-            p = Path(f"{_task_path_raw(task)}/Ch.{chap.chapter}")
+            p = Path(f"{_task_path_raw(task)}/Ch.{chap.chapter or '?'}")
             p.mkdir(exist_ok=True)
 
         try:
@@ -185,7 +185,7 @@ class DownloadChapter(ActionBase):
             y.start()
         for i, y in enumerate(threads):
             task.status = f"Downloading " \
-                          f"Vol.{chap.volume or '?'} Ch.{chap.chapter} p.{i}/{len(threads)}"
+                          f"Vol.{chap.volume or '?'} Ch.{chap.chapter or '?'} p.{i}/{len(threads)}"
             y.join()
 
         t2 = datetime.now()

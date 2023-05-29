@@ -122,8 +122,4 @@ def proxy_data(task_uid):
         if r.status_code == 403:
             raise WorkerFileNotReadyError("Worker file not ready")
         r.raise_for_status()
-
-        def gen():
-            yield from r.iter_content(chunk_size=8192)
-
-        return gen
+        return r

@@ -144,8 +144,12 @@ def task_data(task_id: str):
 
     try:
         data = client.proxy_data(task_id)
-        return StreamingResponse(data, media_type="application/zip",
-                                 headers={"Content-Disposition": f'attachment; filename="{task["uid"]}"'})
+        return StreamingResponse(data.iter_content(chunk_size=8192), media_type="application/zip",
+                                 headers={"Content-Disposition": data.headers.get("Content-Disposition"),
+                                          "Content-Type": data.headers.get("Content-Type"),
+                                          "Content-Length": data.headers.get("Content-Length"),
+                                          "Last-Modified": data.headers.get("Last-Modified"),
+                                          "ETag": data.headers.get("ETag")})
     except client.WorkerProxyDisabledError:
         raise HTTPException(status_code=400, detail="Task cannot be retrieved via this endpoint")
     except FileNotFoundError:

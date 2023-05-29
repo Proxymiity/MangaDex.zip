@@ -34,7 +34,7 @@ class ActionBase:
 
 class DefaultCleanupAction(ActionBase):
     def run(self, task):
-        rmtree(_task_path(task))
+        rmtree(_task_path(task), ignore_errors=True)
 
 
 class ArchiveContentsZIP(ActionBase):

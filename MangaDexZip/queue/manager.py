@@ -23,7 +23,11 @@ def _scheduler_loop():
             g = scheduler.next_group()
             t = g.next_task()
             a = t.next_action()
-            a.run(t)
+            try:
+                a.run(t)
+            except Exception as e:
+                t.failed = True
+                t.status = f"A critical error occurred while processing the task ({e})"
 
 
 def _cleanup_loop():

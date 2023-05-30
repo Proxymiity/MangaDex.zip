@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 
 from pathlib import Path
 
@@ -44,9 +44,15 @@ if config["backend"]["enabled"] is True:
     manager.cleanup_thread.start()
 
 
-@app.get("/", summary="Index")
+@app.get("/", summary="Index", include_in_schema=False)
 def index() -> HTMLResponse:
     return HTMLResponse(Path("MangaDexZip/web/index.html").read_bytes())
+
+
+@app.get("/robots.txt", include_in_schema=False)
+def robots() -> PlainTextResponse:
+    data = ["User-agent: *", "Disallow: /", "Allow: /$"]
+    return PlainTextResponse("\n".join(data))
 
 
 @app.get("/ping", summary="Ping",

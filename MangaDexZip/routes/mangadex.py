@@ -26,7 +26,7 @@ def add_manga(manga_id: str,
 
     *front-end use only* - For API usage, please refer to the /api/manga endpoint.
 
-    *This endpoint is named '/title' to match MangaDex's frontend paths. It is also aliased to '/manga'.*"""
+    *This endpoint is named '/title' to match MangaDex's frontend paths. It is also aliased to `/manga`.*"""
     _ = garbage
     task = _add_manga(manga_id, request, light=light, lang=lang)
 
@@ -46,7 +46,11 @@ def add_manga(manga_id: str,
     - `light` is optional and refers to the downsized version of chapter images.
     - `land` is optional, defaults to 'en' and refers to the language used when searching for chapters.
 
-    *developer use only* - For regular usage, please refer to the /title endpoint."""
+    When the task is started, you will be given a Task ID. You will then need to regularly hit `/queue/front/<task_id>`.
+    This endpoint will then provide you with your task's status.
+    If your task finishes successfully, the `redirect_uri` property will correspond to the URL of your task's file.
+
+    *developer use only* - For regular usage, please refer to the `/title` endpoint."""
     task = _add_manga(manga_id, request, light=light, lang=lang)
     return NewTask(task_id=task["task_id"])
 
@@ -77,7 +81,7 @@ def add_chapter(chapter_id: str,
                 light: Union[str, None] = None) -> RedirectResponse:
     """Download a Chapter.
 
-    *front-end use only* - For API usage, please refer to the /api/chapter endpoint."""
+    *front-end use only* - For API usage, please refer to the `/api/chapter` endpoint."""
     _ = garbage
     task = _add_chapter(chapter_id, request, light=light)
 
@@ -95,7 +99,11 @@ def add_chapter(chapter_id: str,
     - `chapter_id` must be a valid MangaDex Chapter.
     - `light` is optional and refers to the downsized version of chapter images.
 
-    *developer use only* - For regular usage, please refer to the /chapter endpoint."""
+    When the task is started, you will be given a Task ID. You will then need to regularly hit `/queue/front/<task_id>`.
+    This endpoint will then provide you with your task's status.
+    If your task finishes successfully, the `redirect_uri` property will correspond to the URL of your task's file.
+
+    *developer use only* - For regular usage, please refer to the `/chapter` endpoint."""
     task = _add_chapter(chapter_id, request, light=light)
     return NewTask(task_id=task["task_id"])
 

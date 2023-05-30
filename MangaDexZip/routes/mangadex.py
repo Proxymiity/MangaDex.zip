@@ -35,7 +35,7 @@ def add_manga(manga_id: str,
     return RedirectResponse(f"{api_url}/queue/front/{task['task_id']}/wait")
 
 
-@router.get("/manga/{manga_id}", summary="Download a Manga (dev-friendly)")
+@router.get("/api/manga/{manga_id}", summary="Download a Manga (dev-friendly)")
 def add_manga(manga_id: str,
               request: Request,
               light: Union[str, None] = None,

@@ -8,25 +8,25 @@ from .routes import mangadex, queue_client, queue_worker
 from .config import config
 from .queue import manager
 
-
 __version__ = "0.0.1"
 
+tags_metadata = []
 
-tags_metadata = [
-    {
+if config["frontend"]["enabled"]:
+    tags_metadata.append({
         "name": "MangaDex",
         "description": "Allows starting a new download job"
-    },
-    {
-        "name": "Queue",
-        "description": "Allows to retrieve information from a present or past download job"
-    },
-    {
+    })
+    tags_metadata.append({
+            "name": "Queue",
+            "description": "Allows to retrieve information from a present or past download job"
+    })
+if config["backend"]["enabled"] and not config["backend"]["hide_from_openapi"]:
+    tags_metadata.append({
         "name": "Queue Worker",
         "description": "Allows starting raw download jobs "
                        "(this endpoint is token-protected should not be used by end-users)"
-    }
-]
+    })
 
 app = FastAPI(
     title="MangaDex Zipper",

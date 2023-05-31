@@ -11,6 +11,7 @@ from ..queue import manager, tasks, actions
 from ..config import config
 
 
+router = APIRouter(tags=["Queue Worker"])
 AUTH_TOKEN = config["backend"]["auth_token"]
 ALWAYS_ALLOW_RETRIEVE = config["backend"]["always_allow_retrieve"]
 
@@ -58,9 +59,6 @@ class BackendTaskInfo(BaseModel):
     created_at: datetime
     group: Union[BackendTaskGroupInfo, None]
     scheduler: Union[BackendTaskSchedulerInfo, None]
-
-
-router = APIRouter(tags=["Queue Worker"])
 
 
 @router.get("/queue/back", summary="Get general backend info")

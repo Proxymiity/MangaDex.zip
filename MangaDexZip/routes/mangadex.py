@@ -28,14 +28,15 @@ def add_manga(manga_id: str,
               request: Request,
               garbage: Union[str, None] = None,
               light: Union[str, None] = None,
-              lang: Union[str, None] = "en") -> RedirectResponse:
+              lang: Union[str, None] = "en",
+              title: Union[str, None] = None) -> RedirectResponse:
     """Download a Manga.
 
     *front-end use only* - For API usage, please refer to the /api/manga endpoint.
 
     *This endpoint is named '/title' to match MangaDex's frontend paths. It is also aliased to `/manga`.*"""
     _ = garbage
-    task = _add_manga(manga_id, request, light=light, lang=lang)
+    task = _add_manga(manga_id, request, light=light, lang=lang, title=title)
     stats.add("manga")
 
     api_host = f"{request.url.hostname}:{request.url.port}" if request.url.port else request.url.hostname
@@ -52,7 +53,8 @@ def add_manga(manga_id: str,
 def add_manga(manga_id: str,
               request: Request,
               light: Union[str, None] = None,
-              lang: Union[str, None] = "en") -> NewTask:
+              lang: Union[str, None] = "en",
+              title: Union[str, None] = None) -> NewTask:
     """Download a Manga.
 
     - `manga_id` must be a valid MangaDex Manga (Title).
@@ -64,7 +66,7 @@ def add_manga(manga_id: str,
     If your task finishes successfully, the `redirect_uri` property will correspond to the URL of your task's file.
 
     *developer use only* - For regular usage, please refer to the `/title` endpoint."""
-    task = _add_manga(manga_id, request, light=light, lang=lang)
+    task = _add_manga(manga_id, request, light=light, lang=lang, title=title)
     stats.add("manga_api")
     return NewTask(task_id=task["task_id"])
 
@@ -72,14 +74,16 @@ def add_manga(manga_id: str,
 def _add_manga(manga_id: str,
                request: Request,
                light: Union[str, None] = None,
-               lang: Union[str, None] = "en"):
+               lang: Union[str, None] = "en",
+               title: Union[str, None] = None):
     worker = client.select_worker_auto()
     if not worker:
         raise HTTPException(status_code=503, detail="No reachable workers, please try again later")
 
     opt = {
         "light": True if light in ("1", "true") else False,
-        "language": lang or "en"
+        "language": lang or "en",
+        "append_titles": True if title in ("1", "true") else False
     }
     task = client.append(worker, "manga", manga_id, opt, request.client.host)
     if not task:

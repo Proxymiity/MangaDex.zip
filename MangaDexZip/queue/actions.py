@@ -80,9 +80,11 @@ class ArchiveContentsZIP(ActionBase):
 
 
 class AddMangaChapters(ActionBase):
-    def __init__(self, data, light=False, language="en"):
+    def __init__(self, data, light=False, language="en",
+                 append_titles=False):
         self.light = light
         self.language = language
+        self.append_titles = append_titles
         super().__init__(data)
 
     def run(self, task):
@@ -108,7 +110,6 @@ class AddMangaChapters(ActionBase):
                 "contentRating[]": ["safe", "suggestive", "erotica", "pornographic"],
                 "translatedLanguage[]": [self.language]
             })
-            # todo: advanced filtering
             if not chaps:
                 task.failed = True
                 task.status = f"There are no chapters available for manga {manga.id}"
@@ -131,16 +132,18 @@ class AddMangaChapters(ActionBase):
                     dedup_dict[chap.chapter] = chap
 
         for _, chap in sorted(dedup_dict.items(), key=lambda i: i[0]):
-            task.add_action(DownloadChapter(chap.id, data_obj=chap, light=self.light, subfolder=True))
+            task.add_action(DownloadChapter(chap.id, data_obj=chap, light=self.light, subfolder=True,
+                                            append_title=self.append_titles))
 
         task.add_action(ArchiveContentsZIP())
 
 
 class DownloadChapter(ActionBase):
-    def __init__(self, data, data_obj=None, light=False, subfolder=False):
+    def __init__(self, data, data_obj=None, light=False, subfolder=False, append_title=False):
         self.data_obj = data_obj
         self.light = light
         self.subfolder = subfolder
+        self.append_title = append_title
         self.net = None
         super().__init__(data)
 
@@ -169,7 +172,10 @@ class DownloadChapter(ActionBase):
                 return
 
         if self.subfolder:
-            p = Path(f"{_task_path_raw(task)}/Ch.{chap.chapter or '?'}")
+            if self.append_title and chap.title:
+                p = Path(f"{_task_path_raw(task)}/Ch.{chap.chapter or '?'} - {str(chap.title)[:64]}")
+            else:
+                p = Path(f"{_task_path_raw(task)}/Ch.{chap.chapter or '?'}")
             p.mkdir(exist_ok=True)
 
         try:

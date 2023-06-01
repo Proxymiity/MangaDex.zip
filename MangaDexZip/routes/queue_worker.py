@@ -240,7 +240,8 @@ def queue_append(new_task: BackendTaskRequest,
         task.kind = "download_archive"
         task.add_action(actions.AddMangaChapters(new_task.data,
                                                  light=new_task.opt_data.get("light", False),
-                                                 language=new_task.opt_data.get("language", "en")))
+                                                 language=new_task.opt_data.get("language", "en"),
+                                                 append_titles=new_task.opt_data.get("append_titles", False)))
         group = tasks.TaskGroup.get_group(new_task.group)
         group.add_task(task)
         manager.scheduler.add_group(group)

@@ -1,5 +1,6 @@
 import threading
 import MangaDexPy
+import functools
 from requests import exceptions as rex
 
 from datetime import datetime
@@ -90,6 +91,7 @@ class AddMangaChapters(ActionBase):
 
         try:
             md = MangaDexPy.Client()
+            md.session.request = functools.partial(md.session.request, timeout=10)
             md.session.headers["User-Agent"] = "Proxymiity/MangaDexZip"
             manga = md.get_manga(self.data)
         except MangaDexPy.NoContentError:
@@ -154,6 +156,7 @@ class DownloadChapter(ActionBase):
         else:
             try:
                 md = MangaDexPy.Client()
+                md.session.request = functools.partial(md.session.request, timeout=10)
                 md.session.headers["User-Agent"] = "Proxymiity/MangaDexZip"
                 chap = md.get_chapter(self.data)
             except MangaDexPy.NoContentError:

@@ -23,7 +23,10 @@ class Worker(BaseModel):
     maintenance: bool = False
 
 
-@router.get("/admin/queue", summary="Get all running tasks on cluster")
+@router.get("/admin/queue", summary="Get all running tasks on cluster",
+            responses={
+                403: {"description": "Invalid authorization token"}
+            })
 def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> BackendCompleteTaskSchedulerInfo:
     """Get all running tasks on the entire cluster.
 
@@ -67,7 +70,10 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
     )
 
 
-@router.get("/admin/queue/all", summary="Get all running tasks on all workers")
+@router.get("/admin/queue/all", summary="Get all running tasks on all workers",
+            responses={
+                403: {"description": "Invalid authorization token"}
+            })
 def queue_info(authorization: Annotated[Union[str, None], Header()] = None) \
         -> dict[str, BackendCompleteTaskSchedulerInfo]:
     """Get all running tasks on all workers.
@@ -98,7 +104,12 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) \
     return _w
 
 
-@router.get("/admin/queue/{worker_id}", summary="Get all running tasks on a specific worker")
+@router.get("/admin/queue/{worker_id}", summary="Get all running tasks on a specific worker",
+            responses={
+                403: {"description": "Invalid authorization token"},
+                404: {"description": "Worker not found"},
+                502: {"description": "Communication error with worker"}
+            })
 def queue_info(worker_id: str,
                authorization: Annotated[Union[str, None], Header()] = None) -> BackendCompleteTaskSchedulerInfo:
     """Get all running tasks on a specific worker.
@@ -127,7 +138,12 @@ def queue_info(worker_id: str,
     )
 
 
-@router.delete("/admin/task/{task_id}", summary="Immediately cancel a running task")
+@router.delete("/admin/task/{task_id}", summary="Immediately cancel a running task",
+               responses={
+                   403: {"description": "Invalid authorization token"},
+                   404: {"description": "Task not found"},
+                   502: {"description": "Communication error with worker"}
+               })
 def queue_cancel(task_id: str,
                  authorization: Annotated[Union[str, None], Header()] = None):
     """Find and cancel a running task on a worker.
@@ -146,7 +162,10 @@ def queue_cancel(task_id: str,
     return result
 
 
-@router.get("/admin/workers", summary="Get all registered workers")
+@router.get("/admin/workers", summary="Get all registered workers",
+            responses={
+                403: {"description": "Invalid authorization token"}
+            })
 def workers_list(authorization: Annotated[Union[str, None], Header()] = None) -> dict[str, Worker]:
     """Get all registered workers.
 
@@ -158,7 +177,10 @@ def workers_list(authorization: Annotated[Union[str, None], Header()] = None) ->
                       proxy_data=v["proxy_data"], maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
 
 
-@router.put("/admin/workers/{worker_id}", summary="Add worker to backends")
+@router.put("/admin/workers/{worker_id}", summary="Add worker to backends",
+            responses={
+                403: {"description": "Invalid authorization token"}
+            })
 def workers_add(worker_id: str,
                 worker: Worker,
                 authorization: Annotated[Union[str, None], Header()] = None) -> dict[str, Worker]:
@@ -182,7 +204,11 @@ def workers_add(worker_id: str,
                       proxy_data=v["proxy_data"], maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
 
 
-@router.delete("/admin/workers/{worker_id}", summary="Remove worker from backends")
+@router.delete("/admin/workers/{worker_id}", summary="Remove worker from backends",
+               responses={
+                   403: {"description": "Invalid authorization token"},
+                   404: {"description": "Worker not found"}
+               })
 def workers_del(worker_id: str,
                 authorization: Annotated[Union[str, None], Header()] = None) -> dict[str, Worker]:
     """Remove worker from backends.
@@ -191,7 +217,7 @@ def workers_del(worker_id: str,
     if authorization != AUTH_TOKEN and AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     if worker_id not in client.BACKENDS:
-        raise HTTPException(status_code=403, detail="Unknown worker")
+        raise HTTPException(status_code=404, detail="Unknown worker")
     config["frontend"]["backends"].pop(worker_id)
     config.save()
 
@@ -200,7 +226,10 @@ def workers_del(worker_id: str,
                       proxy_data=v["proxy_data"], maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
 
 
-@router.get("/admin/stats", summary="Statistics")
+@router.get("/admin/stats", summary="Statistics",
+            responses={
+                403: {"description": "Invalid authorization token"}
+            })
 def get_stats(authorization: Annotated[Union[str, None], Header()] = None):
     if authorization != AUTH_TOKEN and AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")

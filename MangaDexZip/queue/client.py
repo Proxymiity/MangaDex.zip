@@ -22,6 +22,10 @@ class WorkerFileNotReadyError(Exception):
     pass
 
 
+class WorkerTaskNotSupportedError(Exception):
+    pass
+
+
 def reload_workers():
     config.reload()
     for k in BACKENDS.copy():
@@ -172,5 +176,7 @@ def proxy_data(task_uid):
             raise FileNotFoundError("Task not found")
         if r.status_code == 403:
             raise WorkerFileNotReadyError("Worker file not ready")
+        if r.status_code == 503:
+            raise WorkerTaskNotSupportedError("Worker unknown task kind")
         r.raise_for_status()
         return r

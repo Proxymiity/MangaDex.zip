@@ -67,7 +67,10 @@ def queue_info() -> SystemInfo:
     )
 
 
-@router.get("/queue/front/{task_id}", summary="Get info on a specific task")
+@router.get("/queue/front/{task_id}", summary="Get info on a specific task",
+            responses={
+                404: {"description": "Task not found"}
+            })
 def task_info(task_id: str,
               request: Request) -> TaskInfo:
     """Get info on a running task."""
@@ -112,7 +115,12 @@ def task_info(task_id: str,
 
 
 # noinspection PyTypeChecker
-@router.get("/queue/front/{task_id}/wait", summary="Wait for a running task")
+@router.get("/queue/front/{task_id}/wait", summary="Wait for a running task",
+            responses={
+                200: {"description": "HTML wait page"},
+                404: {"description": "Task not found"},
+            },
+            response_class=HTMLResponse)
 def task_wait(task_id: str,
               request: Request) -> HTMLResponse:
     """*front-end use only* Wait for a running task.
@@ -131,7 +139,16 @@ def task_wait(task_id: str,
     })
 
 
-@router.get("/queue/front/{task_id}/data", summary="Download a finished task's data")
+@router.get("/queue/front/{task_id}/data", summary="Download a finished task's data",
+            responses={
+                400: {"description": "Retrieval method not allowed"},
+                403: {"description": "Task not ready on the worker"},
+                404: {"description": "Task not found"},
+                410: {"description": "Task expired on the worker"},
+                500: {"description": "Communication error with worker"},
+                503: {"description": "Task not supported"}
+            },
+            response_class=StreamingResponse)
 def task_data(task_id: str):
     """Download data for a specific task.
 
@@ -156,9 +173,11 @@ def task_data(task_id: str):
     except client.WorkerProxyDisabledError:
         raise HTTPException(status_code=400, detail="Task cannot be retrieved via this endpoint")
     except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="Cache out of date (this could only have happened if "
+        raise HTTPException(status_code=410, detail="Cache out of date (this could only have happened if "
                                                     "the task expired at the moment of the retrieval)")
     except client.WorkerFileNotReadyError:
         raise HTTPException(status_code=403, detail="Task not ready")
+    except client.WorkerTaskNotSupportedError:
+        raise HTTPException(status_code=503, detail="Unknown task kind")
     except HTTPError:
         raise HTTPException(status_code=500, detail="Error while retrieving file from worker")

@@ -14,7 +14,13 @@ class NewTask(BaseModel):
     task_id: str
 
 
-@router.get("/title/{manga_id}", summary="Download a Manga (user-friendly)")
+@router.get("/title/{manga_id}", summary="Download a Manga (user-friendly)",
+            responses={
+                302: {"description": "Redirect to the task wait page"},
+                502: {"description": "Error during worker communication"},
+                503: {"description": "No reachable workers at this time"}
+            },
+            response_class=RedirectResponse, status_code=302)
 @router.get("/manga/{manga_id}", include_in_schema=False)
 @router.get("/title/{manga_id}/{garbage}", include_in_schema=False)
 @router.get("/manga/{manga_id}/{garbage}", include_in_schema=False)
@@ -37,7 +43,12 @@ def add_manga(manga_id: str,
     return RedirectResponse(f"{api_url}/queue/front/{task['task_id']}/wait")
 
 
-@router.get("/api/manga/{manga_id}", summary="Download a Manga (dev-friendly)")
+@router.get("/api/manga/{manga_id}", summary="Download a Manga (dev-friendly)",
+            responses={
+                200: {"description": "Task created successfully"},
+                502: {"description": "Error during worker communication"},
+                503: {"description": "No reachable workers at this time"}
+            })
 def add_manga(manga_id: str,
               request: Request,
               light: Union[str, None] = None,
@@ -76,7 +87,13 @@ def _add_manga(manga_id: str,
     return task
 
 
-@router.get("/chapter/{chapter_id}", summary="Download a Chapter (user-friendly)")
+@router.get("/chapter/{chapter_id}", summary="Download a Chapter (user-friendly)",
+            responses={
+                302: {"description": "Redirect to the task wait page"},
+                502: {"description": "Error during worker communication"},
+                503: {"description": "No reachable workers at this time"}
+            },
+            response_class=RedirectResponse, status_code=302)
 @router.get("/chapter/{chapter_id}/{garbage}", include_in_schema=False)
 def add_chapter(chapter_id: str,
                 request: Request,
@@ -94,7 +111,12 @@ def add_chapter(chapter_id: str,
     return RedirectResponse(f"{api_url}/queue/front/{task['task_id']}/wait")
 
 
-@router.get("/api/chapter/{chapter_id}", summary="Download a Chapter (dev-friendly)")
+@router.get("/api/chapter/{chapter_id}", summary="Download a Chapter (dev-friendly)",
+            responses={
+                302: {"description": "Task created successfully"},
+                502: {"description": "Error during worker communication"},
+                503: {"description": "No reachable workers at this time"}
+            })
 def add_chapter(chapter_id: str,
                 request: Request,
                 light: Union[str, None] = None) -> NewTask:

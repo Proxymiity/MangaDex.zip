@@ -100,7 +100,10 @@ def _is_json_serializable(o):
         return False
 
 
-@router.get("/queue/back", summary="Get general backend info")
+@router.get("/queue/back", summary="Get general backend info",
+            responses={
+                403: {"description": "Invalid authorization token"}
+            })
 def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> BackendTaskSchedulerInfo:
     """Get general backend info about running tasks.
 
@@ -121,7 +124,10 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
     )
 
 
-@router.get("/queue/back/all", summary="Get all existing tasks")
+@router.get("/queue/back/all", summary="Get all existing tasks",
+            responses={
+                403: {"description": "Invalid authorization token"}
+            })
 def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> BackendCompleteTaskSchedulerInfo:
     """Get all registered tasks on this worker.
 
@@ -210,7 +216,11 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
     )
 
 
-@router.post("/queue/back/new", summary="Add a new task to the queue")
+@router.post("/queue/back/new", summary="Add a new task to the queue",
+             responses={
+                 400: {"description": "Invalid task type"},
+                 403: {"description": "Invalid authorization token"}
+             })
 def queue_append(new_task: BackendTaskRequest,
                  authorization: Annotated[Union[str, None], Header()] = None) -> BackendTaskResponse:
     """Add a new task to the queue.
@@ -249,7 +259,11 @@ def queue_append(new_task: BackendTaskRequest,
         raise HTTPException(status_code=400, detail="Unsupported task type")
 
 
-@router.get("/queue/back/{task_id}", summary="Get info for a specific task")
+@router.get("/queue/back/{task_id}", summary="Get info for a specific task",
+            responses={
+                403: {"description": "Invalid authorization token"},
+                404: {"description": "Task not found"}
+            })
 def task_info(task_id: str,
               authorization: Annotated[Union[str, None], Header()] = None) -> BackendTaskInfo:
     """Get info for a specific task in the queue.
@@ -298,7 +312,11 @@ def task_info(task_id: str,
     )
 
 
-@router.delete("/queue/back/{task_id}", summary="Cancel a running task")
+@router.delete("/queue/back/{task_id}", summary="Cancel a running task",
+               responses={
+                   403: {"description": "Invalid authorization token"},
+                   404: {"description": "Task not found"}
+               })
 def task_info(task_id: str,
               authorization: Annotated[Union[str, None], Header()] = None):
     """Cancel a running task in the queue.
@@ -317,7 +335,13 @@ def task_info(task_id: str,
     return True
 
 
-@router.get("/queue/back/{task_id}/data", summary="Retrieve data for a specific task")
+@router.get("/queue/back/{task_id}/data", summary="Retrieve data for a specific task",
+            responses={
+                403: {"description": "Invalid authorization token, task not ready"},
+                404: {"description": "Task not found"},
+                503: {"description": "Task not supported"}
+            },
+            response_class=FileResponse)
 async def task_data(task_id: str,
                     authorization: Annotated[Union[str, None], Header()] = None) -> FileResponse:
     """Retrieve data for a specific task
@@ -336,4 +360,4 @@ async def task_data(task_id: str,
     if task.kind == "download_archive":
         return FileResponse(task.result, filename=f"{task.uid}.zip", media_type="application/zip")
     else:
-        raise HTTPException(status_code=500, detail="Unknown task kind")
+        raise HTTPException(status_code=503, detail="Unknown task kind")

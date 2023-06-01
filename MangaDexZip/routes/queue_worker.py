@@ -254,8 +254,6 @@ def task_info(task_id: str,
               authorization: Annotated[Union[str, None], Header()] = None) -> BackendTaskInfo:
     """Get info for a specific task in the queue.
 
-    If the task doesn't exist, an empty task will be returned.
-
     This endpoint is used for internal communication between the queue_client and the queue_worker.
     If configured, this endpoint will require an authorization token."""
     if authorization != AUTH_TOKEN and AUTH_TOKEN:

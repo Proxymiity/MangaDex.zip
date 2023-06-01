@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 
 from pathlib import Path
 
-from .routes import mangadex, queue_client, queue_worker
+from .routes import mangadex, queue_client, queue_worker, admin
 
 from .config import config
 from .queue import manager
@@ -27,6 +27,12 @@ if config["backend"]["enabled"] and not config["backend"]["hide_from_openapi"]:
         "description": "Allows starting raw download jobs "
                        "(this endpoint is token-protected should not be used by end-users)"
     })
+if config["admin"]["enabled"] and not config["admin"]["hide_from_openapi"]:
+    tags_metadata.append({
+        "name": "Admin",
+        "description": "Allows administrating the instance "
+                       "(this endpoint is token-protected should not be used by end-users)"
+    })
 
 app = FastAPI(
     title="MangaDex Zipper",
@@ -42,6 +48,8 @@ if config["backend"]["enabled"] is True:
     app.include_router(queue_worker.router)
     manager.scheduler_thread.start()
     manager.cleanup_thread.start()
+if config["admin"]["enabled"] is True:
+    app.include_router(admin.router)
 
 
 @app.get("/", summary="Index", include_in_schema=False)

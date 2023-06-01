@@ -8,7 +8,8 @@
                 "token": "",
                 "priority": 1,
                 "timeout": 2,
-                "proxy_data": false
+                "proxy_data": false,
+                "maintenance": false
             }
         },
         "task_cache_ttl": 300
@@ -23,5 +24,10 @@
         "task_ttl": 3600,
         "task_empty_ttl": 60,
         "cleanup_interval": 300
+    },
+    "admin": {
+        "enabled": true,
+        "auth_token": null,
+        "hide_from_openapi": false
     }
 }

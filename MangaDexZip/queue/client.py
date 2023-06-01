@@ -22,17 +22,30 @@ class WorkerFileNotReadyError(Exception):
     pass
 
 
+def reload_workers():
+    config.reload()
+    for k in BACKENDS.copy():
+        if k not in config["frontend"]["backends"]:
+            BACKENDS.pop(k)
+    for k, v in config["frontend"]["backends"].items():
+        BACKENDS[k] = v
+
+
+def available_workers():
+    return {k: v for k, v in BACKENDS.items() if not v["maintenance"]}
+
+
 def select_worker(uid):
-    return BACKENDS.get(uid)
+    return available_workers().get(uid)
 
 
 def select_worker_random():
-    return random.choice(tuple(BACKENDS.keys()))
+    return random.choice(tuple(available_workers().keys()))
 
 
 def select_worker_auto():
     workers = {}
-    for k in BACKENDS.keys():
+    for k in available_workers().keys():
         q = query(k)
         if q:
             workers[k] = q["active_groups"]
@@ -94,6 +107,21 @@ def get_info(task_uid):
             task_cache[task_uid] = (k, datetime.utcnow())
             return _ti
     return None
+
+
+def get_all(worker_uid):
+    worker = BACKENDS[worker_uid]
+    try:
+        req = requests.get(f"{worker['url']}/queue/back/all",
+                           headers={
+                               "Authorization": worker["token"]
+                           },
+                           timeout=worker["timeout"])
+        if req.status_code != 200:
+            return None
+        return req.json()
+    except (RequestException, JSONDecodeError):
+        return None
 
 
 def _get_info_from_worker(worker_uid, task_uid):

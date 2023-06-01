@@ -71,6 +71,8 @@ class BackendCompleteActionInfo(BaseModel):
 class BackendCompleteTaskInfo(BackendTaskInfo):
     actions: list[Union[BackendCompleteActionInfo, dict]]
     queued_actions: list[Union[BackendCompleteActionInfo, dict]]
+    status_real: Union[str, None]
+    status_override: Union[str, None]
 
 
 class BackendCompleteTaskGroupInfo(BackendTaskGroupInfo):
@@ -164,7 +166,9 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
                 started=t.started,
                 completed=t.completed,
                 failed=t.failed,
-                status=t.status,
+                status=t.status_override or t.status,
+                status_real=t.status,
+                status_override=t.status_override,
                 result=t.result,
                 progress=t.progress,
                 created_at=t.created_at,
@@ -287,13 +291,32 @@ def task_info(task_id: str,
         started=task.started,
         completed=task.completed,
         failed=task.failed,
-        status=task.status,
+        status=task.status_override or task.status,
         result=task.result,
         progress=task.progress,
         created_at=task.created_at,
         group=_g_info,
         scheduler=_s_info
     )
+
+
+@router.delete("/queue/back/{task_id}", summary="Cancel a running task")
+def task_info(task_id: str,
+              authorization: Annotated[Union[str, None], Header()] = None):
+    """Cancel a running task in the queue.
+
+    This endpoint is used for internal communication between the queue_client and the queue_worker.
+    If configured, this endpoint will require an authorization token."""
+    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+        raise HTTPException(status_code=403, detail="Invalid authorization token")
+    if task_id not in tasks.Task.instances:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task = tasks.Task.get_task(uid=task_id)
+    task.failed = True
+    task.status_override = "Task execution cancelled"
+
+    return True
 
 
 @router.get("/queue/back/{task_id}/data", summary="Retrieve data for a specific task")

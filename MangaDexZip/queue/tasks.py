@@ -152,6 +152,7 @@ class Task:
         self.failed = False
 
         self.status: Union[str, None] = None
+        self.status_override: Union[str, None] = None
         self.result: Union[str, None] = None
 
         self.created_at: datetime = datetime.utcnow()

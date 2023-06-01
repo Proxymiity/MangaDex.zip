@@ -139,6 +139,25 @@ def _get_info_from_worker(worker_uid, task_uid):
         return None
 
 
+def mark_failed(task_uid):
+    if task_uid not in task_cache:
+        d = get_info(task_uid)
+        if not d:
+            raise FileNotFoundError("Task not found")
+    worker = BACKENDS[task_cache[task_uid][0]]
+    try:
+        req = requests.delete(f"{worker['url']}/queue/back/{task_uid}",
+                              headers={
+                                  "Authorization": worker["token"]
+                              },
+                              timeout=worker["timeout"])
+        if req.status_code != 200:
+            return None
+        return req.json()
+    except (RequestException, JSONDecodeError):
+        return None
+
+
 def proxy_data(task_uid):
     if task_uid not in task_cache:
         d = get_info(task_uid)

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Union, Annotated
 
 from ..queue import client
-from .queue_worker import BackendCompleteTaskSchedulerInfo
+from .queue_worker import BackendCompleteTaskInfo, BackendCompleteTaskSchedulerInfo
 
 from ..config import config
 
@@ -124,6 +124,23 @@ def queue_info(worker_id: str,
         actions=data["actions"],
         queued_actions=data["queued_actions"]
     )
+
+
+@router.delete("/admin/task/{task_id}", summary="Immediately cancel a running task")
+def queue_cancel(task_id: str,
+                 authorization: Annotated[Union[str, None], Header()] = None):
+    """Find and cancel a running task on a worker.
+
+    If configured, this endpoint will require an authorization token."""
+    task = client.get_info(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    result = client.mark_failed(task_id)
+    if not result:
+        raise HTTPException(status_code=502, detail="Couldn't reach worker, please try again later")
+
+    return result
 
 
 @router.get("/admin/workers", summary="Get all registered workers")

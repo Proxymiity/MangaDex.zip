@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from uuid import uuid4
 from datetime import datetime
+from json import dumps
 
 from typing import Union, Annotated
 
@@ -61,6 +62,42 @@ class BackendTaskInfo(BaseModel):
     scheduler: Union[BackendTaskSchedulerInfo, None]
 
 
+class BackendCompleteActionInfo(BaseModel):
+    name: str
+    data: dict
+    unserializable_data: dict
+
+
+class BackendCompleteTaskInfo(BackendTaskInfo):
+    actions: list[BackendCompleteActionInfo]
+    queued_actions: list[BackendCompleteActionInfo]
+
+
+class BackendCompleteTaskGroupInfo(BackendTaskGroupInfo):
+    tasks: dict[str, BackendCompleteTaskInfo]
+    active_tasks: dict[str, BackendCompleteTaskInfo]
+    queued_tasks: dict[str, BackendCompleteTaskInfo]
+
+
+class BackendCompleteTaskSchedulerInfo(BackendTaskSchedulerInfo):
+    groups: dict[str, BackendCompleteTaskGroupInfo]
+    active_groups: dict[str, BackendCompleteTaskGroupInfo]
+    queued_groups: dict[str, BackendCompleteTaskGroupInfo]
+    tasks: dict[str, BackendCompleteTaskInfo]
+    active_tasks: dict[str, BackendCompleteTaskInfo]
+    queued_tasks: dict[str, BackendCompleteTaskInfo]
+    actions: list[BackendCompleteActionInfo]
+    queued_actions: list[BackendCompleteActionInfo]
+
+
+def _is_json_serializable(o):
+    try:
+        dumps(o)
+        return True
+    except (TypeError, OverflowError):
+        return False
+
+
 @router.get("/queue/back", summary="Get general backend info")
 def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> BackendTaskSchedulerInfo:
     """Get general backend info about running tasks.
@@ -79,6 +116,93 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
         queued_tasks=sum([len(g.queued_tasks) for g in scheduler.active_groups]),
         actions=sum([sum([len(t.actions) for t in g.tasks]) for g in scheduler.groups]),
         queued_actions=sum([sum([len(t.queued_actions) for t in g.active_tasks]) for g in scheduler.active_groups])
+    )
+
+
+@router.get("/queue/back/all", summary="Get all existing tasks")
+def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> BackendCompleteTaskSchedulerInfo:
+    """Get all registered tasks on this worker.
+
+    Warning: This endpoint may impact performance when used.
+
+    This endpoint is used for internal communication between the admin and the queue_worker.
+    If configured, this endpoint will require an authorization token."""
+    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+        raise HTTPException(status_code=403, detail="Invalid authorization token")
+    _g, _ag, _qg = {}, {}, {}
+    _t, _at, _qt = {}, {}, {}
+    _a, _qa = [], []
+    scheduler = manager.scheduler
+    for g in scheduler.groups:
+        g_tasks = {}
+        g_active_tasks = {}
+        g_queued_tasks = {}
+
+        for t in g.tasks:
+            t_actions = []
+            t_queued_actions = []
+
+            for a in t.actions:
+                a_info_serializable = [k for k, v in a.__dict__.items() if _is_json_serializable(v)]
+                a_info = BackendCompleteActionInfo(
+                    name=a.__class__.__name__,
+                    data={k: v for k, v in a.__dict__.items() if k in a_info_serializable},
+                    unserializable_data={k: str(v) for k, v in a.__dict__.items() if k not in a_info_serializable}
+                )
+
+                t_actions.append(a_info)
+                _a.append(a_info)
+                if a in t.queued_actions:
+                    t_queued_actions.append(a_info)
+                    _qa.append(a_info)
+
+            t_info = BackendCompleteTaskInfo(
+                uid=t.uid,
+                kind=t.kind,
+                actions=t_actions,
+                queued_actions=t_queued_actions,
+                started=t.started,
+                completed=t.completed,
+                failed=t.failed,
+                status=t.status,
+                result=t.result,
+                progress=t.progress,
+                created_at=t.created_at,
+                group=None,
+                scheduler=None
+            )
+
+            g_tasks[t.uid] = t_info
+            _t[t.uid] = t_info
+            if t in g.active_tasks:
+                g_active_tasks[t.uid] = t_info
+                _at[t.uid] = t_info
+            if t in g.queued_tasks:
+                g_queued_tasks[t.uid] = t_info
+                _qt[t.uid] = t_info
+
+        g_info = BackendCompleteTaskGroupInfo(
+            uid=g.uid,
+            tasks=g_tasks,
+            queued_tasks=g_queued_tasks,
+            active_tasks=g_active_tasks
+        )
+
+        _g[g.uid] = g_info
+        if g in scheduler.active_groups:
+            _ag[g.uid] = g_info
+        if g in scheduler.queued_groups:
+            _qg[g.uid] = g_info
+
+    return BackendCompleteTaskSchedulerInfo(
+        groups=_g,
+        active_groups=_ag,
+        queued_groups=_qg,
+        tasks=_t,
+        active_tasks=_at,
+        queued_tasks=_qt,
+        actions=_a,
+        queued_actions=_qa
     )
 
 

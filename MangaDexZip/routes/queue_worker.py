@@ -151,8 +151,8 @@ def task_info(task_id: str,
     _g_info = BackendTaskGroupInfo(
         uid=task.parent.uid,
         tasks=len(task.parent.tasks),
-        queued_tasks=len(task.parent.queued_tasks),
-        active_tasks=len(task.parent.active_tasks)
+        active_tasks=len(task.parent.active_tasks),
+        queued_tasks=len(task.parent.queued_tasks)
     ) if task.parent else None
 
     return BackendTaskInfo(

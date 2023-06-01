@@ -69,25 +69,25 @@ class BackendCompleteActionInfo(BaseModel):
 
 
 class BackendCompleteTaskInfo(BackendTaskInfo):
-    actions: list[BackendCompleteActionInfo]
-    queued_actions: list[BackendCompleteActionInfo]
+    actions: list[Union[BackendCompleteActionInfo, dict]]
+    queued_actions: list[Union[BackendCompleteActionInfo, dict]]
 
 
 class BackendCompleteTaskGroupInfo(BackendTaskGroupInfo):
-    tasks: dict[str, BackendCompleteTaskInfo]
-    active_tasks: dict[str, BackendCompleteTaskInfo]
-    queued_tasks: dict[str, BackendCompleteTaskInfo]
+    tasks: dict[str, Union[BackendCompleteTaskInfo, dict]]
+    active_tasks: dict[str, Union[BackendCompleteTaskInfo, dict]]
+    queued_tasks: dict[str, Union[BackendCompleteTaskInfo, dict]]
 
 
 class BackendCompleteTaskSchedulerInfo(BackendTaskSchedulerInfo):
-    groups: dict[str, BackendCompleteTaskGroupInfo]
-    active_groups: dict[str, BackendCompleteTaskGroupInfo]
-    queued_groups: dict[str, BackendCompleteTaskGroupInfo]
-    tasks: dict[str, BackendCompleteTaskInfo]
-    active_tasks: dict[str, BackendCompleteTaskInfo]
-    queued_tasks: dict[str, BackendCompleteTaskInfo]
-    actions: list[BackendCompleteActionInfo]
-    queued_actions: list[BackendCompleteActionInfo]
+    groups: dict[str, Union[BackendCompleteTaskGroupInfo, dict]]
+    active_groups: dict[str, Union[BackendCompleteTaskGroupInfo, dict]]
+    queued_groups: dict[str, Union[BackendCompleteTaskGroupInfo, dict]]
+    tasks: dict[str, Union[BackendCompleteTaskInfo, dict]]
+    active_tasks: dict[str, Union[BackendCompleteTaskInfo, dict]]
+    queued_tasks: dict[str, Union[BackendCompleteTaskInfo, dict]]
+    actions: list[Union[BackendCompleteActionInfo, dict]]
+    queued_actions: list[Union[BackendCompleteActionInfo, dict]]
 
 
 def _is_json_serializable(o):

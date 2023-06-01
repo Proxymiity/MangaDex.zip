@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from typing import Union
 
+from .. import stats
 from ..queue import client
 
 router = APIRouter(tags=["MangaDex"])
@@ -29,6 +30,7 @@ def add_manga(manga_id: str,
     *This endpoint is named '/title' to match MangaDex's frontend paths. It is also aliased to `/manga`.*"""
     _ = garbage
     task = _add_manga(manga_id, request, light=light, lang=lang)
+    stats.add("manga")
 
     api_host = f"{request.url.hostname}:{request.url.port}" if request.url.port else request.url.hostname
     api_url = f"{request.url.scheme}://{api_host}"
@@ -52,6 +54,7 @@ def add_manga(manga_id: str,
 
     *developer use only* - For regular usage, please refer to the `/title` endpoint."""
     task = _add_manga(manga_id, request, light=light, lang=lang)
+    stats.add("manga_api")
     return NewTask(task_id=task["task_id"])
 
 
@@ -84,6 +87,7 @@ def add_chapter(chapter_id: str,
     *front-end use only* - For API usage, please refer to the `/api/chapter` endpoint."""
     _ = garbage
     task = _add_chapter(chapter_id, request, light=light)
+    stats.add("chapter")
 
     api_host = f"{request.url.hostname}:{request.url.port}" if request.url.port else request.url.hostname
     api_url = f"{request.url.scheme}://{api_host}"
@@ -105,6 +109,7 @@ def add_chapter(chapter_id: str,
 
     *developer use only* - For regular usage, please refer to the `/chapter` endpoint."""
     task = _add_chapter(chapter_id, request, light=light)
+    stats.add("chapter_api")
     return NewTask(task_id=task["task_id"])
 
 

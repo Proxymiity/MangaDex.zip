@@ -6,6 +6,7 @@ from typing import Union, Annotated
 from ..queue import client
 from .queue_worker import BackendCompleteTaskInfo, BackendCompleteTaskSchedulerInfo
 
+from ..stats import stats, volatile_stats
 from ..config import config
 
 
@@ -195,3 +196,10 @@ def workers_del(worker_id: str,
     return {k: Worker(url=v["url"], token=v["token"],
                       priority=v["priority"], timeout=v["timeout"],
                       proxy_data=v["proxy_data"], maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
+
+
+@router.get("/admin/stats", summary="Statistics")
+def get_stats(authorization: Annotated[Union[str, None], Header()] = None):
+    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+        raise HTTPException(status_code=403, detail="Invalid authorization token")
+    return {"all_time": stats, "since_boot": volatile_stats}

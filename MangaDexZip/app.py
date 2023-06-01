@@ -6,6 +6,7 @@ from pathlib import Path
 from .routes import mangadex, queue_client, queue_worker, admin
 
 from .config import config
+from .stats import stats
 from .queue import manager
 
 __version__ = "0.0.1"
@@ -50,6 +51,12 @@ if config["backend"]["enabled"] is True:
     manager.cleanup_thread.start()
 if config["admin"]["enabled"] is True:
     app.include_router(admin.router)
+
+
+@app.on_event("shutdown")
+def shutdown():
+    if config["frontend"]["enabled"] is True:
+        stats.save()
 
 
 @app.get("/", summary="Index", include_in_schema=False)

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Union, Annotated
 
 from ..queue import client
-from .queue_worker import BackendCompleteTaskInfo, BackendCompleteTaskSchedulerInfo
+from .queue_worker import BackendCompleteTaskSchedulerInfo
 
 from ..stats import stats, volatile_stats
 from ..config import config
@@ -133,6 +133,8 @@ def queue_cancel(task_id: str,
     """Find and cancel a running task on a worker.
 
     If configured, this endpoint will require an authorization token."""
+    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+        raise HTTPException(status_code=403, detail="Invalid authorization token")
     task = client.get_info(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")

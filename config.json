@@ -1,26 +1,27 @@
 {
-  "additional_configurations": [],
-  "frontend": {
-    "enabled": true,
-    "backends": {
-      "example": {
-        "url": "http://127.0.0.1:8000",
-        "token": "",
-        "priority": 1,
-        "timeout": 2,
-        "proxy_data": false
-      }
+    "additional_configurations": [],
+    "frontend": {
+        "enabled": true,
+        "backends": {
+            "example": {
+                "url": "http://127.0.0.1:8000",
+                "token": "",
+                "priority": 1,
+                "timeout": 2,
+                "proxy_data": false
+            }
+        },
+        "task_cache_ttl": 300
     },
-    "task_cache_ttl": 300
-  },
-  "backend": {
-    "enabled": true,
-    "auth_token": null,
-    "always_allow_retrieve": true,
-    "temp_path": "./tmp",
-    "scheduler_empty_wait": 1,
-    "task_ttl": 3600,
-    "task_empty_ttl": 60,
-    "cleanup_interval": 300
-  }
+    "backend": {
+        "enabled": true,
+        "auth_token": null,
+        "hide_from_openapi": false,
+        "always_allow_retrieve": true,
+        "temp_path": "./tmp",
+        "scheduler_empty_wait": 1,
+        "task_ttl": 3600,
+        "task_empty_ttl": 60,
+        "cleanup_interval": 300
+    }
 }

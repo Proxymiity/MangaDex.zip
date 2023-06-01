@@ -50,11 +50,11 @@ def add_manga(manga_id: str,
                 502: {"description": "Error during worker communication"},
                 503: {"description": "No reachable workers at this time"}
             })
-def add_manga(manga_id: str,
-              request: Request,
-              light: Union[str, None] = None,
-              lang: Union[str, None] = "en",
-              title: Union[str, None] = None) -> NewTask:
+def add_manga_api(manga_id: str,
+                  request: Request,
+                  light: Union[str, None] = None,
+                  lang: Union[str, None] = "en",
+                  title: Union[str, None] = None) -> NewTask:
     """Download a Manga.
 
     - `manga_id` must be a valid MangaDex Manga (Title).
@@ -121,9 +121,9 @@ def add_chapter(chapter_id: str,
                 502: {"description": "Error during worker communication"},
                 503: {"description": "No reachable workers at this time"}
             })
-def add_chapter(chapter_id: str,
-                request: Request,
-                light: Union[str, None] = None) -> NewTask:
+def add_chapter_api(chapter_id: str,
+                    request: Request,
+                    light: Union[str, None] = None) -> NewTask:
     """Start a new Download Chapter Task.
 
     - `chapter_id` must be a valid MangaDex Chapter.

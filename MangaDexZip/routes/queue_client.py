@@ -119,6 +119,10 @@ def task_wait(task_id: str,
 
     This page will send a small HTML structure and JS script that regularly refreshes the task's progress.
     The script will then redirect the user to the download link."""
+    task = client.get_info(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
     api_host = f"{request.url.hostname}:{request.url.port}" if request.url.port else request.url.hostname
     api_url = f"{request.url.scheme}://{api_host}"
     return templates.TemplateResponse("wait.html", {
@@ -137,7 +141,6 @@ def task_data(task_id: str):
     You should **always** follow the `redirect_uri` present in the task info endpoint.
     Not all tasks are retrievable from this endpoint.
     """
-
     task = client.get_info(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")

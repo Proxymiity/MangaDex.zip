@@ -12,7 +12,7 @@ from ..queue import manager, tasks, actions
 from ..config import config
 
 
-router = APIRouter(tags=["Queue Worker"])
+router = APIRouter(tags=["Queue Worker"], include_in_schema=not config["backend"]["hide_from_openapi"])
 AUTH_TOKEN = config["backend"]["auth_token"]
 ALWAYS_ALLOW_RETRIEVE = config["backend"]["always_allow_retrieve"]
 

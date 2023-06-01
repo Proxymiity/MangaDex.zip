@@ -9,11 +9,8 @@ from .queue_worker import BackendCompleteTaskSchedulerInfo
 from ..config import config
 
 
-router = APIRouter(tags=["Admin"])
+router = APIRouter(tags=["Admin"], include_in_schema=not config["admin"]["hide_from_openapi"])
 AUTH_TOKEN = config["admin"]["auth_token"]
-IS_FRONTEND = config["frontend"]["enabled"]
-IS_BACKEND = config["backend"]["enabled"]
-HIDE_FROM_OPENAPI = config["admin"]["hide_from_openapi"]
 
 
 class Worker(BaseModel):

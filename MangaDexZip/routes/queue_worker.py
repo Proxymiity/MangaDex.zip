@@ -243,7 +243,9 @@ def queue_append(new_task: BackendTaskRequest,
                                                  language=new_task.opt_data.get("language", "en"),
                                                  append_titles=new_task.opt_data.get("append_titles", False),
                                                  preferred_groups=new_task.opt_data.get("preferred_groups", []),
-                                                 groups_substitute=new_task.opt_data.get("groups_substitute", True)))
+                                                 groups_substitute=new_task.opt_data.get("groups_substitute", True),
+                                                 start=new_task.opt_data.get("start", None),
+                                                 end=new_task.opt_data.get("end", None)))
         group = tasks.TaskGroup.get_group(new_task.group)
         group.add_task(task)
         manager.scheduler.add_group(group)

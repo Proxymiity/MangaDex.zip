@@ -31,7 +31,9 @@ def add_manga(manga_id: str,
               lang: Union[str, None] = "en",
               title: Union[str, None] = None,
               group: Annotated[Union[list[str], None], Query()] = None,
-              group_only: Union[str, None] = None) -> RedirectResponse:
+              group_only: Union[str, None] = None,
+              start: Union[float, None] = None,
+              end: Union[float, None] = None) -> RedirectResponse:
     """Download a Manga.
 
     *front-end use only* - For API usage, please refer to the /api/manga endpoint.
@@ -39,7 +41,8 @@ def add_manga(manga_id: str,
     *This endpoint is named '/title' to match MangaDex's frontend paths. It is also aliased to `/manga`.*"""
     _ = garbage
     task = _add_manga(manga_id, request, light=light, lang=lang, title=title,
-                      group=group, group_only=group_only)
+                      group=group, group_only=group_only,
+                      start=start, end=end)
     stats.add("manga")
 
     api_host = f"{request.url.hostname}:{request.url.port}" if request.url.port else request.url.hostname
@@ -59,7 +62,9 @@ def add_manga_api(manga_id: str,
                   lang: Union[str, None] = "en",
                   title: Union[str, None] = None,
                   group: Annotated[Union[list[str], None], Query()] = None,
-                  group_only: Union[str, None] = None) -> NewTask:
+                  group_only: Union[str, None] = None,
+                  start: Union[float, None] = None,
+                  end: Union[float, None] = None) -> NewTask:
     """Download a Manga.
 
     - `manga_id` must be a valid MangaDex Manga (Title).
@@ -72,7 +77,8 @@ def add_manga_api(manga_id: str,
 
     *developer use only* - For regular usage, please refer to the `/title` endpoint."""
     task = _add_manga(manga_id, request, light=light, lang=lang, title=title,
-                      group=group, group_only=group_only)
+                      group=group, group_only=group_only,
+                      start=start, end=end)
     stats.add("manga_api")
     return NewTask(task_id=task["task_id"])
 
@@ -83,7 +89,9 @@ def _add_manga(manga_id: str,
                lang: Union[str, None] = "en",
                title: Union[str, None] = None,
                group: Annotated[Union[list[str], None], Query()] = None,
-               group_only: Union[str, None] = None):
+               group_only: Union[str, None] = None,
+               start: Union[float, None] = None,
+               end: Union[float, None] = None):
     worker = client.select_worker_auto()
     if not worker:
         raise HTTPException(status_code=503, detail="No reachable workers, please try again later")
@@ -93,7 +101,9 @@ def _add_manga(manga_id: str,
         "language": lang or "en",
         "append_titles": True if title in ("1", "true") else False,
         "preferred_groups": group or [],
-        "groups_substitute": False if group_only in ("1", "true") else True
+        "groups_substitute": False if group_only in ("1", "true") else True,
+        "start": start or None,
+        "end": end or None
     }
     task = client.append(worker, "manga", manga_id, opt, request.client.host)
     if not task:

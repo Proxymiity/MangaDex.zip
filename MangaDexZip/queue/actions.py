@@ -81,12 +81,15 @@ class ArchiveContentsZIP(ActionBase):
 
 class AddMangaChapters(ActionBase):
     def __init__(self, data, light=False, language="en",
-                 append_titles=False, preferred_groups=None, groups_substitute=True):
+                 append_titles=False, preferred_groups=None, groups_substitute=True,
+                 start=None, end=None):
         self.light = light
         self.language = language
         self.append_titles = append_titles
         self.preferred_groups = preferred_groups or []
         self.groups_substitute = groups_substitute
+        self.start = start
+        self.end = end
         super().__init__(data)
 
     def run(self, task):
@@ -127,6 +130,10 @@ class AddMangaChapters(ActionBase):
 
         if self.preferred_groups:
             chaps = self.filter_groups(chaps)
+        if self.start:
+            chaps = self.filter_start(chaps)
+        if self.end:
+            chaps = self.filter_end(chaps)
 
         if not chaps:
             task.failed = True
@@ -173,6 +180,26 @@ class AddMangaChapters(ActionBase):
                 if self.groups_substitute:
                     filtered.append(tuple(chaps_groups.keys())[0])
 
+        return filtered
+
+    def filter_start(self, chaps):
+        filtered = []
+        for chap in chaps:
+            try:
+                if float(chap.chapter) >= self.start:
+                    filtered.append(chap)
+            except (ValueError, TypeError):
+                continue
+        return filtered
+
+    def filter_end(self, chaps):
+        filtered = []
+        for chap in chaps:
+            try:
+                if float(chap.chapter) <= self.end:
+                    filtered.append(chap)
+            except (ValueError, TypeError):
+                continue
         return filtered
 
 

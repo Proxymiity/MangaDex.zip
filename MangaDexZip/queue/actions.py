@@ -86,7 +86,7 @@ class AddMangaChapters(ActionBase):
         self.language = language
         self.append_titles = append_titles
         self.preferred_groups = preferred_groups or []
-        self.groups_substitute = True
+        self.groups_substitute = groups_substitute
         super().__init__(data)
 
     def run(self, task):

@@ -81,10 +81,12 @@ class ArchiveContentsZIP(ActionBase):
 
 class AddMangaChapters(ActionBase):
     def __init__(self, data, light=False, language="en",
-                 append_titles=False):
+                 append_titles=False, preferred_groups=None, groups_substitute=True):
         self.light = light
         self.language = language
         self.append_titles = append_titles
+        self.preferred_groups = preferred_groups or []
+        self.groups_substitute = True
         super().__init__(data)
 
     def run(self, task):
@@ -123,6 +125,14 @@ class AddMangaChapters(ActionBase):
             task.status = f"MD API Error occurred during chapters fetch for manga {manga.id}"
             return
 
+        if self.preferred_groups:
+            chaps = self.filter_groups(chaps)
+
+        if not chaps:
+            task.failed = True
+            task.status = f"There are no chapters available for manga {manga.id} matching your filters"
+            return
+
         dedup_dict = {}
         for chap in chaps:
             if chap.chapter not in dedup_dict:
@@ -136,6 +146,34 @@ class AddMangaChapters(ActionBase):
                                             append_title=self.append_titles))
 
         task.add_action(ArchiveContentsZIP())
+
+    def filter_groups(self, chaps):
+        filtered = []
+        chaps_dict = {}
+        for chap in chaps:
+            try:
+                chap_key = float(chap.chapter)
+            except (ValueError, TypeError):
+                chap_key = chap.chapter
+            if chap_key not in chaps_dict:
+                chaps_dict[chap_key] = []
+            chaps_dict[chap_key].append(chap)
+
+        for chap_list in chaps_dict.values():
+            chaps_groups = {chap: [c.id for c in chap.group] for chap in chap_list}
+            for group in self.preferred_groups:
+                for k, v in chaps_groups.items():
+                    if group in v:
+                        filtered.append(k)
+                        break
+                else:
+                    continue
+                break
+            else:
+                if self.groups_substitute:
+                    filtered.append(tuple(chaps_groups.keys())[0])
+
+        return filtered
 
 
 class DownloadChapter(ActionBase):

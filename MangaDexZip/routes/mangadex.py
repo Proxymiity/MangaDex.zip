@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, Query, HTTPException
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
-from typing import Union
+from typing import Union, Annotated
 
 from .. import stats
 from ..queue import client
@@ -29,14 +29,17 @@ def add_manga(manga_id: str,
               garbage: Union[str, None] = None,
               light: Union[str, None] = None,
               lang: Union[str, None] = "en",
-              title: Union[str, None] = None) -> RedirectResponse:
+              title: Union[str, None] = None,
+              group: Annotated[Union[list[str], None], Query()] = None,
+              group_only: Union[str, None] = None) -> RedirectResponse:
     """Download a Manga.
 
     *front-end use only* - For API usage, please refer to the /api/manga endpoint.
 
     *This endpoint is named '/title' to match MangaDex's frontend paths. It is also aliased to `/manga`.*"""
     _ = garbage
-    task = _add_manga(manga_id, request, light=light, lang=lang, title=title)
+    task = _add_manga(manga_id, request, light=light, lang=lang, title=title,
+                      group=group, group_only=group_only)
     stats.add("manga")
 
     api_host = f"{request.url.hostname}:{request.url.port}" if request.url.port else request.url.hostname
@@ -54,7 +57,9 @@ def add_manga_api(manga_id: str,
                   request: Request,
                   light: Union[str, None] = None,
                   lang: Union[str, None] = "en",
-                  title: Union[str, None] = None) -> NewTask:
+                  title: Union[str, None] = None,
+                  group: Annotated[Union[list[str], None], Query()] = None,
+                  group_only: Union[str, None] = None) -> NewTask:
     """Download a Manga.
 
     - `manga_id` must be a valid MangaDex Manga (Title).
@@ -66,7 +71,8 @@ def add_manga_api(manga_id: str,
     If your task finishes successfully, the `redirect_uri` property will correspond to the URL of your task's file.
 
     *developer use only* - For regular usage, please refer to the `/title` endpoint."""
-    task = _add_manga(manga_id, request, light=light, lang=lang, title=title)
+    task = _add_manga(manga_id, request, light=light, lang=lang, title=title,
+                      group=group, group_only=group_only)
     stats.add("manga_api")
     return NewTask(task_id=task["task_id"])
 
@@ -75,7 +81,9 @@ def _add_manga(manga_id: str,
                request: Request,
                light: Union[str, None] = None,
                lang: Union[str, None] = "en",
-               title: Union[str, None] = None):
+               title: Union[str, None] = None,
+               group: Annotated[Union[list[str], None], Query()] = None,
+               group_only: Union[str, None] = None):
     worker = client.select_worker_auto()
     if not worker:
         raise HTTPException(status_code=503, detail="No reachable workers, please try again later")
@@ -83,7 +91,9 @@ def _add_manga(manga_id: str,
     opt = {
         "light": True if light in ("1", "true") else False,
         "language": lang or "en",
-        "append_titles": True if title in ("1", "true") else False
+        "append_titles": True if title in ("1", "true") else False,
+        "preferred_groups": group or [],
+        "groups_substitute": False if group_only in ("1", "true") else True
     }
     task = client.append(worker, "manga", manga_id, opt, request.client.host)
     if not task:

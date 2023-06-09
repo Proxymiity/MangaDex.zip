@@ -15,7 +15,7 @@ You can use the following parameters when downloading from MangaDex.zip:
 Additionally, you can use the following parameters when downloading Manga:
 - `lang=X` changes the language used when searching for Chapters. (e.g. `lang=fr`)
 - `title=1` automatically appends the Chapter's title if present.
-- `group=X` allows selecting primary Groups when downloading Chapters, allowing you to prioritize scanlation Groups. This parameter can be repeated, and Chapters will be selected in a 'first match' fashion. (e.g. `group=672ff295-0996-4367-b529-cdf92ff5db7d`)
+- `group=X` selects primary Groups when downloading Chapters, allowing you to prioritize scanlation Groups. This parameter can be repeated, and Chapters will be selected in a 'first match' fashion. (e.g. `group=672ff295-0996-4367-b529-cdf92ff5db7d`)
 - `group_only=1` modifies the behavior of the `group=X` parameter by explicitly not downloading Chapters that aren't matching selected Groups.
 - `start=X` trims the Chapter list to only download Chapters greater than or equal to a specific number. (e.g. `start=15`)  
   `end=X` trims the Chapter list to only download Chapters less than or equal to a specific number. (e.g. `end=30`)  
@@ -25,7 +25,7 @@ Please remember that only the first query parameter should start with an `?`, wh
 
 # How does this work?
 ## General working schema
-Here's a Mermaid Sequence Diagram to help you understand how the worker works:
+Here's a Mermaid Sequence Diagram to help you understand how the MangaDex.zip works:
 
 ```mermaid
 sequenceDiagram
@@ -84,7 +84,7 @@ To prevent someone from blocking the server with multiple large titles, MangaDex
 The queue is shared among all users on a single worker.  
 To ensure fairness, Chapters are downloaded one by one, and are processed in a round-robin fashion. 
 A user with 30 active tasks will have the same priority as another user with only 5 tasks and will be processed equally.  
-After each completed task, the worker will switch to the next user, instead of switching to the next task.
+After each completed task, the worker will switch to the next user, instead of switching to the user's next task.
 
 ## A note about threads
 As MangaDex doesn't allow us to have more requests per a given timeframe than other users, having more threads to download multiple Chapters at once wouldn't give any benefit.

@@ -33,7 +33,7 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
     Warning: This endpoint may impact workers' performance when used.
 
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     _g, _ag, _qg = {}, {}, {}
     _t, _at, _qt = {}, {}, {}
@@ -81,7 +81,7 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) \
     Warning: This endpoint may impact workers' performance when used.
 
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     _w = {}
 
@@ -117,7 +117,7 @@ def queue_info(worker_id: str,
     Warning: This endpoint may impact the worker's performance when used.
 
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     if worker_id not in client.BACKENDS:
         raise HTTPException(status_code=404, detail="Unknown worker")
@@ -149,7 +149,7 @@ def queue_cancel(task_id: str,
     """Find and cancel a running task on a worker.
 
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     task = client.get_info(task_id)
     if not task:
@@ -170,7 +170,7 @@ def workers_list(authorization: Annotated[Union[str, None], Header()] = None) ->
     """Get all registered workers.
 
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     return {k: Worker(url=v["url"], token=v["token"],
                       priority=v["priority"], timeout=v["timeout"],
@@ -187,7 +187,7 @@ def workers_add(worker_id: str,
     """Add worker to backends.
 
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     config["frontend"]["backends"][worker_id] = {
         "url": worker.url,
@@ -214,7 +214,7 @@ def workers_del(worker_id: str,
     """Remove worker from backends.
 
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     if worker_id not in client.BACKENDS:
         raise HTTPException(status_code=404, detail="Unknown worker")
@@ -231,6 +231,6 @@ def workers_del(worker_id: str,
                 403: {"description": "Invalid authorization token"}
             })
 def get_stats(authorization: Annotated[Union[str, None], Header()] = None):
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     return {"all_time": stats, "since_boot": volatile_stats}

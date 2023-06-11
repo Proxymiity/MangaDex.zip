@@ -109,7 +109,7 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
 
     This endpoint is used for internal communication between the queue_client and the queue_worker.
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     scheduler = manager.scheduler
     return BackendTaskSchedulerInfo(
@@ -135,7 +135,7 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
 
     This endpoint is used for internal communication between the admin and the queue_worker.
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     _g, _ag, _qg = {}, {}, {}
     _t, _at, _qt = {}, {}, {}
@@ -233,7 +233,7 @@ def queue_append(new_task: BackendTaskRequest,
 
     This endpoint is used for internal communication between the queue_client and the queue_worker.
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     if new_task.type == "manga":
         task = tasks.Task.get_task(str(uuid4()))
@@ -275,7 +275,7 @@ def task_info(task_id: str,
 
     This endpoint is used for internal communication between the queue_client and the queue_worker.
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     if task_id not in tasks.Task.instances:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -328,7 +328,7 @@ def task_info(task_id: str,
 
     This endpoint is used for internal communication between the queue_client and the queue_worker.
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN:
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     if task_id not in tasks.Task.instances:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -355,7 +355,7 @@ async def task_data(task_id: str,
 
     This endpoint is used for internal communication between the queue_client and the queue_worker.
     If configured, this endpoint will require an authorization token."""
-    if authorization != AUTH_TOKEN and AUTH_TOKEN and not ALWAYS_ALLOW_RETRIEVE:
+    if not ALWAYS_ALLOW_RETRIEVE and AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     if task_id not in tasks.Task.instances:
         raise HTTPException(status_code=404, detail="Task not found")

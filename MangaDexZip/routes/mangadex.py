@@ -128,7 +128,7 @@ def add_chapter(chapter_id: str,
     *front-end use only* - For API usage, please refer to the `/api/chapter` endpoint."""
     _ = garbage
     task = _add_chapter(chapter_id, request, light=light)
-    stats.add("chapter")
+    stats.add("chapters")
 
     api_host = f"{request.url.hostname}:{request.url.port}" if request.url.port else request.url.hostname
     api_url = f"{request.url.scheme}://{api_host}"

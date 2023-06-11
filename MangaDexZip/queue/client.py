@@ -52,6 +52,9 @@ def select_worker_auto():
     for k in available_workers().keys():
         q = query(k)
         if q:
+            if not BACKENDS[k]["skip_ready_check"]:
+                if not query_status(k):
+                    continue
             workers[k] = q["active_groups"]
     if not workers:
         return None
@@ -64,6 +67,21 @@ def query(worker_uid):
     worker = BACKENDS[worker_uid]
     try:
         req = requests.get(f"{worker['url']}/queue/back",
+                           headers={
+                               "Authorization": worker["token"]
+                           },
+                           timeout=worker["timeout"])
+        if req.status_code != 200:
+            return None
+        return req.json()
+    except (RequestException, JSONDecodeError):
+        return None
+
+
+def query_status(worker_uid):
+    worker = BACKENDS[worker_uid]
+    try:
+        req = requests.get(f"{worker['url']}/queue/back/ready",
                            headers={
                                "Authorization": worker["token"]
                            },

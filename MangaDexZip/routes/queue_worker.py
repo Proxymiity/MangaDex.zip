@@ -15,6 +15,7 @@ from ..config import config
 router = APIRouter(tags=["Queue Worker"], include_in_schema=not config["backend"]["hide_from_openapi"])
 AUTH_TOKEN = config["backend"]["auth_token"]
 ALWAYS_ALLOW_RETRIEVE = config["backend"]["always_allow_retrieve"]
+ENFORCE_LIMITS = config["backend"]["enforce_limits"]
 
 
 class BackendTaskSchedulerInfo(BaseModel):
@@ -82,6 +83,7 @@ class BackendCompleteTaskGroupInfo(BackendTaskGroupInfo):
 
 
 class BackendCompleteTaskSchedulerInfo(BackendTaskSchedulerInfo):
+    ready: bool
     groups: dict[str, Union[BackendCompleteTaskGroupInfo, dict]]
     active_groups: dict[str, Union[BackendCompleteTaskGroupInfo, dict]]
     queued_groups: dict[str, Union[BackendCompleteTaskGroupInfo, dict]]
@@ -122,6 +124,20 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
         actions=sum([sum([len(t.actions) for t in g.tasks]) for g in scheduler.groups]),
         queued_actions=sum([sum([len(t.queued_actions) for t in g.active_tasks]) for g in scheduler.active_groups])
     )
+
+
+@router.get("/queue/back/ready", summary="Get backend ready status",
+            responses={
+                403: {"description": "Invalid authorization token"}
+            })
+def queue_ready(authorization: Annotated[Union[str, None], Header()] = None) -> bool:
+    """Get the ready status based on backend limits.
+
+    This endpoint is used for internal communication between the queue_client and the queue_worker.
+    If configured, this endpoint will require an authorization token."""
+    if AUTH_TOKEN and authorization != AUTH_TOKEN:
+        raise HTTPException(status_code=403, detail="Invalid authorization token")
+    return manager.check_status()
 
 
 @router.get("/queue/back/all", summary="Get all existing tasks",
@@ -205,6 +221,7 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
             _qg[g.uid] = g_info
 
     return BackendCompleteTaskSchedulerInfo(
+        ready=manager.check_status(),
         groups=_g,
         active_groups=_ag,
         queued_groups=_qg,
@@ -219,7 +236,8 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
 @router.post("/queue/back/new", summary="Add a new task to the queue",
              responses={
                  400: {"description": "Invalid task type"},
-                 403: {"description": "Invalid authorization token"}
+                 403: {"description": "Invalid authorization token"},
+                 503: {"description": "Worker not ready"}
              })
 def queue_append(new_task: BackendTaskRequest,
                  authorization: Annotated[Union[str, None], Header()] = None) -> BackendTaskResponse:
@@ -235,6 +253,8 @@ def queue_append(new_task: BackendTaskRequest,
     If configured, this endpoint will require an authorization token."""
     if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
+    if ENFORCE_LIMITS and not manager.check_status():
+        raise HTTPException(status_code=503, detail="Worker status degraded")
     if new_task.type == "manga":
         task = tasks.Task.get_task(str(uuid4()))
         task.kind = "download_archive"

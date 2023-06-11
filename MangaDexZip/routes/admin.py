@@ -38,11 +38,16 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
     _g, _ag, _qg = {}, {}, {}
     _t, _at, _qt = {}, {}, {}
     _a, _qa = [], []
+    _ready = True
 
     for k in client.BACKENDS.keys():
         data = client.get_all(k)
         if not data:
+            _ready = False
             continue
+
+        if not data["ready"]:
+            _ready = False
 
         for gk, gv in data["groups"].items():
             _g[gk] = {**_g.get(gk, {}), **gv}
@@ -59,6 +64,7 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) -> B
         _qa += data["queued_actions"]
 
     return BackendCompleteTaskSchedulerInfo(
+        ready=_ready,
         groups=_g,
         active_groups=_ag,
         queued_groups=_qg,
@@ -91,6 +97,7 @@ def queue_info(authorization: Annotated[Union[str, None], Header()] = None) \
             continue
 
         _w[k] = BackendCompleteTaskSchedulerInfo(
+            ready=data["ready"],
             groups=data["groups"],
             active_groups=data["active_groups"],
             queued_groups=data["queued_groups"],
@@ -127,6 +134,7 @@ def queue_info(worker_id: str,
         raise HTTPException(status_code=502, detail="Couldn't reach worker, please try again later")
 
     return BackendCompleteTaskSchedulerInfo(
+        ready=data["ready"],
         groups=data["groups"],
         active_groups=data["active_groups"],
         queued_groups=data["queued_groups"],

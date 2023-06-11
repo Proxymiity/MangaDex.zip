@@ -9,6 +9,7 @@
                 "priority": 1,
                 "timeout": 2,
                 "proxy_data": false,
+                "skip_ready_check": false,
                 "maintenance": false
             }
         },
@@ -23,7 +24,20 @@
         "scheduler_empty_wait": 1,
         "task_ttl": 3600,
         "task_empty_ttl": 60,
-        "cleanup_interval": 300
+        "cleanup_interval": 300,
+        "limits": {
+            "max_groups": null,
+            "max_active_groups": null,
+            "max_tasks": null,
+            "max_active_tasks": null,
+            "max_worker_space_mb": null,
+            "max_worker_space_pct": null,
+            "max_used_space_mb": null,
+            "max_used_space_pct": null,
+            "min_free_space_mb": null,
+            "min_free_space_pct": null
+        },
+        "enforce_limits": true
     },
     "admin": {
         "enabled": true,

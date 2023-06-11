@@ -20,6 +20,7 @@ class Worker(BaseModel):
     priority: int = 100
     timeout: int = 2
     proxy_data: bool = False
+    skip_ready_check: bool = False
     maintenance: bool = False
 
 
@@ -182,7 +183,8 @@ def workers_list(authorization: Annotated[Union[str, None], Header()] = None) ->
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     return {k: Worker(url=v["url"], token=v["token"],
                       priority=v["priority"], timeout=v["timeout"],
-                      proxy_data=v["proxy_data"], maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
+                      proxy_data=v["proxy_data"], skip_ready_check=v["skip_ready_check"],
+                      maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
 
 
 @router.put("/admin/workers/{worker_id}", summary="Add worker to backends",
@@ -203,13 +205,15 @@ def workers_add(worker_id: str,
         "priority": worker.priority,
         "timeout": worker.timeout,
         "proxy_data": worker.proxy_data,
+        "skip_ready_check": worker.skip_ready_check,
         "maintenance": worker.maintenance
     }
     config.save()
 
     return {k: Worker(url=v["url"], token=v["token"],
                       priority=v["priority"], timeout=v["timeout"],
-                      proxy_data=v["proxy_data"], maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
+                      proxy_data=v["proxy_data"], skip_ready_check=v["skip_ready_check"],
+                      maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
 
 
 @router.delete("/admin/workers/{worker_id}", summary="Remove worker from backends",
@@ -231,7 +235,8 @@ def workers_del(worker_id: str,
 
     return {k: Worker(url=v["url"], token=v["token"],
                       priority=v["priority"], timeout=v["timeout"],
-                      proxy_data=v["proxy_data"], maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
+                      proxy_data=v["proxy_data"], skip_ready_check=v["skip_ready_check"],
+                      maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
 
 
 @router.get("/admin/stats", summary="Statistics",

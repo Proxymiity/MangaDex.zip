@@ -85,7 +85,7 @@ def task_info(task_id: str,
             api_url = f"{request.url.scheme}://{api_host}"
             _r_uri = f"{api_url}/queue/front/{task_id}/data"
         else:
-            _r_uri = f"{worker['url']}/queue/back/{task_id}/data"
+            _r_uri = f"{worker['external_url'] or worker['url']}/queue/back/{task_id}/data"
     else:
         _r_uri = None
 

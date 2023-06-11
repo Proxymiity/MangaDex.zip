@@ -16,6 +16,7 @@ AUTH_TOKEN = config["admin"]["auth_token"]
 
 class Worker(BaseModel):
     url: str
+    external_url: Union[str, None]
     token: Union[str, None]
     priority: int = 100
     timeout: int = 2
@@ -181,7 +182,7 @@ def workers_list(authorization: Annotated[Union[str, None], Header()] = None) ->
     If configured, this endpoint will require an authorization token."""
     if AUTH_TOKEN and authorization != AUTH_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid authorization token")
-    return {k: Worker(url=v["url"], token=v["token"],
+    return {k: Worker(url=v["url"], external_url=v["external_url"], token=v["token"],
                       priority=v["priority"], timeout=v["timeout"],
                       proxy_data=v["proxy_data"], skip_ready_check=v["skip_ready_check"],
                       maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
@@ -201,6 +202,7 @@ def workers_add(worker_id: str,
         raise HTTPException(status_code=403, detail="Invalid authorization token")
     config["frontend"]["backends"][worker_id] = {
         "url": worker.url,
+        "external_url": worker.external_url,
         "token": worker.token,
         "priority": worker.priority,
         "timeout": worker.timeout,
@@ -210,7 +212,7 @@ def workers_add(worker_id: str,
     }
     config.save()
 
-    return {k: Worker(url=v["url"], token=v["token"],
+    return {k: Worker(url=v["url"], external_url=v["external_url"], token=v["token"],
                       priority=v["priority"], timeout=v["timeout"],
                       proxy_data=v["proxy_data"], skip_ready_check=v["skip_ready_check"],
                       maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}
@@ -233,7 +235,7 @@ def workers_del(worker_id: str,
     config["frontend"]["backends"].pop(worker_id)
     config.save()
 
-    return {k: Worker(url=v["url"], token=v["token"],
+    return {k: Worker(url=v["url"], external_url=v["external_url"], token=v["token"],
                       priority=v["priority"], timeout=v["timeout"],
                       proxy_data=v["proxy_data"], skip_ready_check=v["skip_ready_check"],
                       maintenance=v["maintenance"]) for k, v in client.BACKENDS.items()}

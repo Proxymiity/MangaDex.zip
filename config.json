@@ -5,6 +5,7 @@
         "backends": {
             "example": {
                 "url": "http://127.0.0.1:8000",
+                "external_url": null,
                 "token": "",
                 "priority": 1,
                 "timeout": 2,

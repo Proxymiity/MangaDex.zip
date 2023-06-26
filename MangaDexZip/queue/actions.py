@@ -113,7 +113,10 @@ class AddMangaChapters(ActionBase):
         try:
             chaps = manga.get_chapters(params={
                 "contentRating[]": ["safe", "suggestive", "erotica", "pornographic"],
-                "translatedLanguage[]": [self.language]
+                "translatedLanguage[]": [self.language],
+                "includeEmptyPages": 0,
+                "includeFuturePublishAt": 0,
+                "includeExternalUrl": 0
             })
             if not chaps:
                 task.failed = True

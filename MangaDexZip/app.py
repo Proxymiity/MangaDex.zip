@@ -9,7 +9,7 @@ from .config import config
 from .stats import stats
 from .queue import manager
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 tags_metadata = []
 

@@ -143,17 +143,27 @@ class AddMangaChapters(ActionBase):
             task.status = f"There are no chapters available for manga {manga.id} matching your filters"
             return
 
+        dedup_none = False
         dedup_dict = {}
         for chap in chaps:
-            if chap.chapter not in dedup_dict:
-                try:
-                    dedup_dict[float(chap.chapter)] = chap
-                except (ValueError, TypeError):
-                    dedup_dict[chap.chapter] = chap
+            try:
+                chap_key = (chap.volume, float(chap.chapter))
+            except (ValueError, TypeError):
+                chap_key = (chap.volume, chap.chapter or 0)
+                if chap.chapter is None:
+                    dedup_none = True
+            if chap_key not in dedup_dict:
+                dedup_dict[chap_key] = chap
 
-        for _, chap in sorted(dedup_dict.items(), key=lambda i: i[0]):
-            task.add_action(DownloadChapter(chap.id, data_obj=chap, light=self.light, subfolder=True,
-                                            append_title=self.append_titles))
+        if dedup_none and len(dedup_dict) > 1:
+            for _, chap in sorted(dedup_dict.items(), key=lambda i: i[0][1]):
+                task.add_action(DownloadChapter(chap.id, data_obj=chap, light=self.light, subfolder=True,
+                                                append_title=self.append_titles,
+                                                volume_dedupe=chap.chapter is None))
+        else:
+            for _, chap in sorted(dedup_dict.items(), key=lambda i: i[0][1]):
+                task.add_action(DownloadChapter(chap.id, data_obj=chap, light=self.light, subfolder=True,
+                                                append_title=self.append_titles))
 
         task.add_action(ArchiveContentsZIP())
 
@@ -162,9 +172,9 @@ class AddMangaChapters(ActionBase):
         chaps_dict = {}
         for chap in chaps:
             try:
-                chap_key = float(chap.chapter)
+                chap_key = (chap.volume, float(chap.chapter))
             except (ValueError, TypeError):
-                chap_key = chap.chapter
+                chap_key = (chap.volume, chap.chapter)
             if chap_key not in chaps_dict:
                 chaps_dict[chap_key] = []
             chaps_dict[chap_key].append(chap)
@@ -207,11 +217,12 @@ class AddMangaChapters(ActionBase):
 
 
 class DownloadChapter(ActionBase):
-    def __init__(self, data, data_obj=None, light=False, subfolder=False, append_title=False):
+    def __init__(self, data, data_obj=None, light=False, subfolder=False, append_title=False, volume_dedupe=False):
         self.data_obj = data_obj
         self.light = light
         self.subfolder = subfolder
         self.append_title = append_title
+        self.volume_dedupe = volume_dedupe
         self.net = None
         super().__init__(data)
 
@@ -240,10 +251,13 @@ class DownloadChapter(ActionBase):
                 return
 
         if self.subfolder:
+            _chapter = f"Ch.{chap.chapter or '?'}"
+            if self.volume_dedupe:
+                _chapter = f"Ch.{chap.chapter or '?'} (Vol.{chap.volume or '?'})"
             if self.append_title and chap.title:
-                p = Path(f"{_task_path_raw(task)}/Ch.{chap.chapter or '?'} - {str(chap.title)[:64]}")
+                p = Path(f"{_task_path_raw(task)}/{_chapter} - {str(chap.title)[:64]}")
             else:
-                p = Path(f"{_task_path_raw(task)}/Ch.{chap.chapter or '?'}")
+                p = Path(f"{_task_path_raw(task)}/{_chapter}")
             p.mkdir(exist_ok=True)
 
         try:

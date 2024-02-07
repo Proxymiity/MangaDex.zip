@@ -100,6 +100,7 @@ class AddMangaChapters(ActionBase):
             md = MangaDexPy.Client()
             md.session.request = functools.partial(md.session.request, timeout=10)
             md.session.headers["User-Agent"] = "Proxymiity/MangaDexZip"
+            md.session.headers.pop("Authorization")
             manga = md.get_manga(self.data)
         except MangaDexPy.NoContentError:
             task.failed = True
@@ -240,6 +241,7 @@ class DownloadChapter(ActionBase):
                 md = MangaDexPy.Client()
                 md.session.request = functools.partial(md.session.request, timeout=10)
                 md.session.headers["User-Agent"] = "Proxymiity/MangaDexZip"
+                md.session.headers.pop("Authorization")
                 chap = md.get_chapter(self.data)
             except MangaDexPy.NoContentError:
                 task.failed = True

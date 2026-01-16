@@ -1,3 +1,8 @@
+> [!warning]
+> Due to me shutting down the MangaDex.py library used in this project, this project will no longer be maintained.  
+> The server infrastructure will keep running for this project as long as it is working correctly.  
+> If MangaDex breaks something in my code when updating their thing, the servers at [mangadex.zip](https://mangadex.zip) will also shut down.
+
 # MangaDex.zip
 Easily download Manga and Chapters from [MangaDex](https://mangadex.org), using a cursed solution to everyone's problems: the `.zip` TLD.  
 ![cursed words once said on MangaDex's Discord server](https://m.iya.at/5sM3mxdlXn.png)
